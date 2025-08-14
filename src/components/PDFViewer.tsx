@@ -54,9 +54,8 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
       viewerRef.current.innerHTML = '';
     }
 
-    // Note: Replace with your actual Adobe Client ID
     const adobeDCView = new window.AdobeDC.View({
-      clientId: "YOUR_CLIENT_ID", // You'll need to replace this
+      clientId: "2714765ac12d4f3eab4711783c106709",
       divId: viewerRef.current.id
     });
 
