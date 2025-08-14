@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { Lightbulb, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';

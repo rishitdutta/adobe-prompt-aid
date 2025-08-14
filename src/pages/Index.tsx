@@ -1,7 +1,14 @@
-import { useState } from 'react';
+
+import { useState, useRef } from 'react';
 import { PDFUpload } from '@/components/PDFUpload';
 import { PDFViewer } from '@/components/PDFViewer';
+import { PDFSidebar } from '@/components/PDFSidebar';
 import { AnalysisPanel } from '@/components/AnalysisPanel';
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from '@/components/ui/resizable';
 
 interface PDFFile {
   id: string;
@@ -24,17 +31,30 @@ const Index = () => {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [persona, setPersona] = useState('');
   const [task, setTask] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesChange = (files: PDFFile[]) => {
     setUploadedFiles(files);
-    // Automatically select the first PDF
     if (files.length > 0 && !currentPDF) {
       setCurrentPDF(files[0]);
     }
   };
 
+  const handleFileRemove = (fileId: string) => {
+    setUploadedFiles(prev => {
+      const filtered = prev.filter(f => f.id !== fileId);
+      if (currentPDF?.id === fileId) {
+        setCurrentPDF(filtered.length > 0 ? filtered[0] : null);
+      }
+      return filtered;
+    });
+  };
+
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleAnalysisRequest = (type: string, text: string) => {
-    // Generate demo responses based on type
     const getDemoResponse = (analysisType: string) => {
       switch (analysisType) {
         case 'summary':
@@ -63,70 +83,62 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen flex bg-background">
-      {/* Left Sidebar - PDF List */}
-      <div className="w-80 bg-sidebar-bg border-r border-sidebar-border flex flex-col">
-        <div className="p-4 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold">PDF Analysis Tool</h1>
-          <p className="text-sm text-muted-foreground">Upload and analyze PDF documents</p>
-        </div>
-        
-        <PDFUpload 
-          onFilesChange={handleFilesChange}
-          uploadedFiles={uploadedFiles}
-        />
-        
-        {uploadedFiles.length > 0 && (
-          <div className="flex-1 p-4">
-            <h3 className="text-sm font-medium mb-2">Select PDF to view:</h3>
-            <div className="space-y-1">
-              {uploadedFiles.map((file) => (
-                <button
-                  key={file.id}
-                  onClick={() => setCurrentPDF(file)}
-                  className={`w-full text-left p-2 rounded-md text-sm transition-colors ${
-                    currentPDF?.id === file.id 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-secondary'
-                  }`}
-                >
-                  {file.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Center - PDF Viewer */}
-      <div className="flex-1 p-6">
-        {currentPDF ? (
-          <PDFViewer
-            pdfUrl={currentPDF.url}
-            fileName={currentPDF.name}
-            onAnalysisRequest={handleAnalysisRequest}
+    <div className="h-screen bg-background">
+      <ResizablePanelGroup direction="horizontal" className="h-full">
+        {/* Left Sidebar */}
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <PDFSidebar
+            uploadedFiles={uploadedFiles}
+            currentPDF={currentPDF}
+            onFileSelect={setCurrentPDF}
+            onFileRemove={handleFileRemove}
+            onFileUpload={handleFileUpload}
           />
-        ) : (
-          <div className="h-full flex items-center justify-center bg-pdf-viewer rounded-lg">
-            <div className="text-center text-muted-foreground">
-              <div className="text-6xl mb-4">📄</div>
-              <h2 className="text-xl font-semibold mb-2">No PDF Selected</h2>
-              <p>Upload a PDF file to start viewing and analyzing</p>
-            </div>
-          </div>
-        )}
-      </div>
+        </ResizablePanel>
 
-      {/* Right Panel - Analysis */}
-      <div className="w-96">
-        <AnalysisPanel
-          analysisResults={analysisResults}
-          persona={persona}
-          task={task}
-          onPersonaChange={setPersona}
-          onTaskChange={setTask}
-        />
-      </div>
+        <ResizableHandle withHandle />
+
+        {/* Center - PDF Viewer */}
+        <ResizablePanel defaultSize={50} minSize={30}>
+          <div className="h-full p-6">
+            {currentPDF ? (
+              <PDFViewer
+                pdfUrl={currentPDF.url}
+                fileName={currentPDF.name}
+                onAnalysisRequest={handleAnalysisRequest}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center bg-pdf-viewer rounded-lg border-2 border-dashed border-border">
+                <div className="text-center text-muted-foreground">
+                  <div className="text-6xl mb-4">📄</div>
+                  <h2 className="text-xl font-semibold mb-2">No PDF Selected</h2>
+                  <p>Upload a PDF file to start viewing and analyzing</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        {/* Right Panel - Analysis */}
+        <ResizablePanel defaultSize={30} minSize={25} maxSize={40}>
+          <AnalysisPanel
+            analysisResults={analysisResults}
+            persona={persona}
+            task={task}
+            onPersonaChange={setPersona}
+            onTaskChange={setTask}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+
+      {/* Hidden file input */}
+      <PDFUpload 
+        onFilesChange={handleFilesChange}
+        uploadedFiles={uploadedFiles}
+        ref={fileInputRef}
+      />
     </div>
   );
 };
