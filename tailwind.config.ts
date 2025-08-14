@@ -52,6 +52,19 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				'sidebar-bg': 'hsl(var(--sidebar-bg))',
+				'sidebar-border': 'hsl(var(--sidebar-border))',
+				'pdf-viewer': 'hsl(var(--pdf-viewer-bg))',
+				'analysis-panel': 'hsl(var(--analysis-panel-bg))',
+				'upload-area': {
+					DEFAULT: 'hsl(var(--upload-area-bg))',
+					border: 'hsl(var(--upload-area-border))'
+				},
+				'lightbulb': {
+					DEFAULT: 'hsl(var(--lightbulb-bg))',
+					border: 'hsl(var(--lightbulb-border))'
+				},
+				'option-hover': 'hsl(var(--option-hover))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
