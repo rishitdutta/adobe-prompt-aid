@@ -100,23 +100,46 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
 
       // Register text selection callback with error handling
       try {
-        if (window.AdobeDC?.View?.Enum?.CallbackType?.TEXT_SELECTION) {
-          adobeDCView.registerCallback(
-            window.AdobeDC.View.Enum.CallbackType.TEXT_SELECTION,
-            (event: any) => {
-              if (event.data && event.data.text) {
-                setSelectedText(event.data.text);
-                // Position lightbulb near selection
-                setLightbulbPosition({
-                  x: 20,
-                  y: 20,
-                  show: true
-                });
-              } else {
-                setLightbulbPosition(prev => ({ ...prev, show: false }));
-              }
+        // Check if the callback type exists
+        if (window.AdobeDC?.View?.Enum?.CallbackType) {
+          console.log('Available callback types:', Object.keys(window.AdobeDC.View.Enum.CallbackType));
+          
+          // Try different callback type names as Adobe's API might use different naming
+          const possibleCallbackTypes = [
+            'TEXT_SELECTION',
+            'SELECTED_TEXT',
+            'TEXT_SELECTED',
+            'SELECTION_CHANGE'
+          ];
+          
+          let callbackRegistered = false;
+          for (const callbackType of possibleCallbackTypes) {
+            if (window.AdobeDC.View.Enum.CallbackType[callbackType]) {
+              console.log(`Registering callback for: ${callbackType}`);
+              adobeDCView.registerCallback(
+                window.AdobeDC.View.Enum.CallbackType[callbackType],
+                (event: any) => {
+                  console.log('Text selection event:', event);
+                  if (event.data && event.data.text) {
+                    setSelectedText(event.data.text);
+                    setLightbulbPosition({
+                      x: 50,
+                      y: 50,
+                      show: true
+                    });
+                  } else {
+                    setLightbulbPosition(prev => ({ ...prev, show: false }));
+                  }
+                }
+              );
+              callbackRegistered = true;
+              break;
             }
-          );
+          }
+          
+          if (!callbackRegistered) {
+            console.warn('No text selection callback type found. Available types:', Object.keys(window.AdobeDC.View.Enum.CallbackType));
+          }
         }
       } catch (error) {
         console.warn('Error registering text selection callback:', error);

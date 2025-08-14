@@ -2,6 +2,7 @@
 import { X, FileText, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 interface PDFFile {
@@ -29,9 +30,12 @@ export function PDFSidebar({
   return (
     <div className="h-full bg-sidebar-bg border-r border-sidebar-border flex flex-col">
       {/* Header */}
-      <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-2xl font-bold text-foreground mb-2">PDF Analysis</h1>
-        <p className="text-sm text-muted-foreground">Upload and analyze documents</p>
+      <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">PDF Analysis</h1>
+          <p className="text-sm text-muted-foreground">Upload and analyze documents</p>
+        </div>
+        <ThemeToggle />
       </div>
 
       {/* Upload Button */}
