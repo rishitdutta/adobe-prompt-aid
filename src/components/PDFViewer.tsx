@@ -29,11 +29,22 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
-    script.onload = initializeViewer;
     document.head.appendChild(script);
 
+    const handleAdobeReady = () => {
+      if (pdfUrl && viewerRef.current) {
+        initializeViewer();
+      }
+    };
+
+    document.addEventListener("adobe_dc_view_sdk.ready", handleAdobeReady);
+
     return () => {
-      document.head.removeChild(script);
+      const existingScript = document.querySelector('script[src="https://acrobatservices.adobe.com/view-sdk/viewer.js"]');
+      if (existingScript) {
+        document.head.removeChild(existingScript);
+      }
+      document.removeEventListener("adobe_dc_view_sdk.ready", handleAdobeReady);
       if (adobeViewRef.current) {
         adobeViewRef.current = null;
       }
