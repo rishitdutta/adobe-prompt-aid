@@ -61,46 +61,67 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
   const initializeViewer = () => {
     if (!window.AdobeDC || !viewerRef.current || !pdfUrl) return;
 
-    // Clear previous viewer
+    // Properly cleanup previous viewer
+    if (adobeViewRef.current) {
+      try {
+        // Clean up any existing callbacks or resources if available
+        adobeViewRef.current = null;
+      } catch (error) {
+        console.warn('Error cleaning up previous viewer:', error);
+      }
+    }
+
+    // Clear the container
     if (viewerRef.current) {
       viewerRef.current.innerHTML = '';
     }
 
-    const adobeDCView = new window.AdobeDC.View({
-      clientId: "2714765ac12d4f3eab4711783c106709",
-      divId: viewerRef.current.id
-    });
+    // Small delay to ensure cleanup is complete
+    setTimeout(() => {
+      if (!viewerRef.current || !pdfUrl) return;
 
-    adobeDCView.previewFile({
-      content: { location: { url: pdfUrl } },
-      metaData: { fileName: fileName }
-    }, {
-      embedMode: "SIZED_CONTAINER",
-      showLeftHandPanel: false,
-      showDownloadPDF: false,
-      showPrintPDF: false,
-      showAnnotationTools: false
-    });
+      const adobeDCView = new window.AdobeDC.View({
+        clientId: "2714765ac12d4f3eab4711783c106709",
+        divId: viewerRef.current.id
+      });
 
-    adobeViewRef.current = adobeDCView;
+      adobeDCView.previewFile({
+        content: { location: { url: pdfUrl } },
+        metaData: { fileName: fileName }
+      }, {
+        embedMode: "SIZED_CONTAINER",
+        showLeftHandPanel: false,
+        showDownloadPDF: false,
+        showPrintPDF: false,
+        showAnnotationTools: false
+      });
 
-    // Listen for text selection
-    adobeDCView.registerCallback(
-      window.AdobeDC.View.Enum.CallbackType.TEXT_SELECTION,
-      (event: any) => {
-        if (event.data && event.data.text) {
-          setSelectedText(event.data.text);
-          // Position lightbulb near selection
-          setLightbulbPosition({
-            x: 20,
-            y: 20,
-            show: true
-          });
-        } else {
-          setLightbulbPosition(prev => ({ ...prev, show: false }));
+      adobeViewRef.current = adobeDCView;
+
+      // Register text selection callback with error handling
+      try {
+        if (window.AdobeDC?.View?.Enum?.CallbackType?.TEXT_SELECTION) {
+          adobeDCView.registerCallback(
+            window.AdobeDC.View.Enum.CallbackType.TEXT_SELECTION,
+            (event: any) => {
+              if (event.data && event.data.text) {
+                setSelectedText(event.data.text);
+                // Position lightbulb near selection
+                setLightbulbPosition({
+                  x: 20,
+                  y: 20,
+                  show: true
+                });
+              } else {
+                setLightbulbPosition(prev => ({ ...prev, show: false }));
+              }
+            }
+          );
         }
+      } catch (error) {
+        console.warn('Error registering text selection callback:', error);
       }
-    );
+    }, 100);
   };
 
   const handleAnalysisClick = (type: string) => {
