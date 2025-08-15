@@ -116,12 +116,16 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
                         const selectedText = result.data.map((item: any) => item.text || '').join(' ').trim();
                         if (selectedText) {
                           setSelectedText(selectedText);
-                          // Position lightbulb near the center of the viewer
-                          setLightbulbPosition({
-                            x: 50,
-                            y: 100,
-                            show: true
-                          });
+                          // Position lightbulb in a visible area
+                          const viewerElement = viewerRef.current;
+                          if (viewerElement) {
+                            const rect = viewerElement.getBoundingClientRect();
+                            setLightbulbPosition({
+                              x: Math.min(rect.width - 100, 200), // Keep away from edges
+                              y: Math.min(rect.height - 100, 150),
+                              show: true
+                            });
+                          }
                         }
                       }
                     })
@@ -160,23 +164,27 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
       
       {lightbulbPosition.show && (
         <div
-          className="absolute z-50 animate-in fade-in-0 zoom-in-95 duration-200"
+          className="absolute z-[9999] animate-in fade-in-0 zoom-in-95 duration-200"
           style={{
-            left: lightbulbPosition.x,
-            top: lightbulbPosition.y,
+            left: `${lightbulbPosition.x}px`,
+            top: `${lightbulbPosition.y}px`,
           }}
         >
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                className="h-10 w-10 p-0 bg-amber-50 border-amber-200 hover:bg-amber-100 shadow-lg dark:bg-amber-900/20 dark:border-amber-700 dark:hover:bg-amber-900/30"
+                className="h-10 w-10 p-0 bg-amber-50 border-2 border-amber-300 hover:bg-amber-100 shadow-xl ring-2 ring-amber-200 dark:bg-amber-900/30 dark:border-amber-600 dark:hover:bg-amber-800/40 dark:ring-amber-700"
                 variant="outline"
               >
                 <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <DropdownMenuContent 
+              align="start" 
+              className="w-56 z-[10000] bg-white border-2 border-gray-200 shadow-2xl dark:bg-gray-800 dark:border-gray-600"
+              sideOffset={8}
+            >
               <DropdownMenuItem 
                 onClick={() => handleAnalysisClick('summary')}
                 className="cursor-pointer hover:bg-accent"
