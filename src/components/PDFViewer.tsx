@@ -98,49 +98,47 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
 
       adobeViewRef.current = adobeDCView;
 
-      // Register text selection callback with error handling
+      // Register text selection callback using EVENT_LISTENER
       try {
-        // Check if the callback type exists
-        if (window.AdobeDC?.View?.Enum?.CallbackType) {
-          console.log('Available callback types:', Object.keys(window.AdobeDC.View.Enum.CallbackType));
-          
-          // Try different callback type names as Adobe's API might use different naming
-          const possibleCallbackTypes = [
-            'TEXT_SELECTION',
-            'SELECTED_TEXT',
-            'TEXT_SELECTED',
-            'SELECTION_CHANGE'
-          ];
-          
-          let callbackRegistered = false;
-          for (const callbackType of possibleCallbackTypes) {
-            if (window.AdobeDC.View.Enum.CallbackType[callbackType]) {
-              console.log(`Registering callback for: ${callbackType}`);
-              adobeDCView.registerCallback(
-                window.AdobeDC.View.Enum.CallbackType[callbackType],
-                (event: any) => {
-                  console.log('Text selection event:', event);
-                  if (event.data && event.data.text) {
-                    setSelectedText(event.data.text);
-                    setLightbulbPosition({
-                      x: 50,
-                      y: 50,
-                      show: true
+        const previewFilePromise = Promise.resolve(adobeDCView);
+        
+        adobeDCView.registerCallback(
+          window.AdobeDC.View.Enum.CallbackType.EVENT_LISTENER,
+          function(event: any) {
+            console.log('Adobe event:', event);
+            if (event.type === "PREVIEW_SELECTION_END") {
+              previewFilePromise.then(adobeViewer => {
+                adobeViewer.getAPIs().then((apis: any) => {
+                  apis.getSelectedContent()
+                    .then((result: any) => {
+                      console.log('Selected content:', result);
+                      if (result && result.data && result.data.length > 0) {
+                        const selectedText = result.data.map((item: any) => item.text || '').join(' ').trim();
+                        if (selectedText) {
+                          setSelectedText(selectedText);
+                          // Position lightbulb near the center of the viewer
+                          setLightbulbPosition({
+                            x: 50,
+                            y: 100,
+                            show: true
+                          });
+                        }
+                      }
+                    })
+                    .catch((error: any) => {
+                      console.warn('Error getting selected content:', error);
                     });
-                  } else {
-                    setLightbulbPosition(prev => ({ ...prev, show: false }));
-                  }
-                }
-              );
-              callbackRegistered = true;
-              break;
+                }).catch((error: any) => {
+                  console.warn('Error getting APIs:', error);
+                });
+              });
+            } else if (event.type === "PREVIEW_SELECTION_START") {
+              // Hide lightbulb when starting new selection
+              setLightbulbPosition(prev => ({ ...prev, show: false }));
             }
-          }
-          
-          if (!callbackRegistered) {
-            console.warn('No text selection callback type found. Available types:', Object.keys(window.AdobeDC.View.Enum.CallbackType));
-          }
-        }
+          },
+          { enableFilePreviewEvents: true }
+        );
       } catch (error) {
         console.warn('Error registering text selection callback:', error);
       }
@@ -162,7 +160,7 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
       
       {lightbulbPosition.show && (
         <div
-          className="absolute z-10"
+          className="absolute z-50 animate-in fade-in-0 zoom-in-95 duration-200"
           style={{
             left: lightbulbPosition.x,
             top: lightbulbPosition.y,
@@ -172,36 +170,40 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                className="h-8 w-8 p-0 bg-lightbulb border-lightbulb-border hover:bg-lightbulb/80"
+                className="h-10 w-10 p-0 bg-amber-50 border-amber-200 hover:bg-amber-100 shadow-lg dark:bg-amber-900/20 dark:border-amber-700 dark:hover:bg-amber-900/30"
                 variant="outline"
               >
-                <Lightbulb className="h-4 w-4 text-yellow-600" />
+                <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuContent align="start" className="w-56 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <DropdownMenuItem 
                 onClick={() => handleAnalysisClick('summary')}
-                className="hover:bg-option-hover"
+                className="cursor-pointer hover:bg-accent"
               >
+                <FileText className="mr-2 h-4 w-4" />
                 Generate Summary
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleAnalysisClick('insights')}
-                className="hover:bg-option-hover"
+                className="cursor-pointer hover:bg-accent"
               >
-                Generate Key Insights
+                <Lightbulb className="mr-2 h-4 w-4" />
+                Key Insights
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleAnalysisClick('counterpoints')}
-                className="hover:bg-option-hover"
+                className="cursor-pointer hover:bg-accent"
               >
-                Generate Counterpoints
+                <div className="mr-2 h-4 w-4 flex items-center justify-center text-xs font-bold">⚡</div>
+                Counterpoints
               </DropdownMenuItem>
               <DropdownMenuItem 
-                disabled
-                className="text-muted-foreground"
+                onClick={() => handleAnalysisClick('facts')}
+                className="cursor-pointer hover:bg-accent"
               >
-                Generate Podcast (Coming Soon)
+                <div className="mr-2 h-4 w-4 flex items-center justify-center text-xs font-bold">💡</div>
+                Did You Know?
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

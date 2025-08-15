@@ -66,6 +66,9 @@ const Index = () => {
         case 'counterpoints':
           return `🔍 Counterpoints & Alternative Perspectives:\n\n**Potential Challenges:**\n• The proposed approach may overlook regulatory constraints\n• Cost-benefit analysis appears optimistic\n• Timeline assumptions may be unrealistic\n\n**Alternative Viewpoints:**\n• Consider phased implementation instead of big-bang approach\n• Risk tolerance may vary across stakeholder groups\n• Market conditions could change during implementation\n\n**Questions to Consider:**\n• What if resource allocation is limited?\n• How would this impact existing workflows?\n• Are there industry best practices being overlooked?\n\nAs a ${persona || 'critical reviewer'} focused on ${task || 'comprehensive analysis'}, these considerations warrant discussion.`;
         
+        case 'facts':
+          return `🔍 Did You Know?\n\n**Interesting Facts & Context:**\n• Industry studies show similar implementations have 78% success rate\n• Best practices suggest 3-6 month timeline for comparable projects\n• Research indicates stakeholder buy-in increases success by 40%\n\n**Historical Context:**\n• Similar initiatives in 2022-2023 faced budget overruns\n• Market leaders typically allocate 15-20% more resources\n• Regulatory changes in this area are expected Q3\n\n**Related Insights:**\n• 92% of companies report improved efficiency post-implementation\n• Training costs average 12% of total project budget\n• Risk mitigation saves 25% in long-term operational costs\n\nFrom a ${persona || 'research analyst'} perspective on ${task || 'fact-finding'}, these data points provide valuable context.`;
+        
         default:
           return 'Analysis complete. Results processed successfully.';
       }
