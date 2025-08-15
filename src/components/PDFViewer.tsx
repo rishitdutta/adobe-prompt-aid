@@ -85,7 +85,8 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
         divId: viewerRef.current.id
       });
 
-      adobeDCView.previewFile({
+      // Get the preview file promise and wait for it to be ready
+      const previewFilePromise = adobeDCView.previewFile({
         content: { location: { url: pdfUrl } },
         metaData: { fileName: fileName }
       }, {
@@ -100,7 +101,6 @@ export function PDFViewer({ pdfUrl, fileName, onAnalysisRequest }: PDFViewerProp
 
       // Register text selection callback using EVENT_LISTENER
       try {
-        const previewFilePromise = Promise.resolve(adobeDCView);
         
         adobeDCView.registerCallback(
           window.AdobeDC.View.Enum.CallbackType.EVENT_LISTENER,
